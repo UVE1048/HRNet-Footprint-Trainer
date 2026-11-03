@@ -7,7 +7,7 @@ shapely>=2.0
 
 # ---- 训练与推理 ----
 torch>=2.0
-torchvision>=0.15
+torchvision>=0.29.2
 mmengine>=0.10.4
 mmsegmentation>=1.2.0
 # 需要 mmcv.ops 的算子就装全量版；纯训练/推理可换 mmcv-lite
