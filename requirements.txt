@@ -11,7 +11,7 @@ torchvision>=0.15
 mmengine>=0.10.4
 mmsegmentation>=1.2.0
 # 需要 mmcv.ops 的算子就装全量版；纯训练/推理可换 mmcv-lite
-mmcv>=2.1.0
+mmcv>=2.2.0
 
 # ---- 通用 ----
 numpy>=1.24,<2.2
