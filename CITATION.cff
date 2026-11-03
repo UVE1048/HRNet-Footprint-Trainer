@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use this software in academic work, please cite it as below."
+type: software
+title: "HRNet-Footprint-Trainer"
+abstract: >-
+  Training pipeline for building footprint segmentation on high-resolution
+  orthophotos. Generates sliding-window patches from large GeoTIFFs and building
+  vector labels, trains HRNet-W48 with FCNHead on MMSegmentation, and performs
+  sliding-window inference over arbitrarily large images. Includes a NoData-aware
+  transform that sets black and white regions to the ignore index so image
+  borders do not contribute to the loss.
+authors:
+  - family-names: "UVE"
+    alias: "UVE1048"
+    website: "https://github.com/UVE1048"
+repository-code: "https://github.com/UVE1048/HRNet-Footprint-Trainer"
+url: "https://github.com/UVE1048/HRNet-Footprint-Trainer"
+license: MIT
+date-released: "2026-11-03"
+keywords:
+  - building footprint
+  - building extraction
+  - semantic segmentation
+  - HRNet
+  - MMSegmentation
+  - OpenMMLab
+  - remote sensing
+  - orthophoto
+  - sliding window inference
+  - dataset preparation
+  - PyTorch
+  - 建筑物轮廓提取
+  - 语义分割
+  - 遥感影像
+  - 模型训练

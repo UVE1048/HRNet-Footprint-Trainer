@@ -1,53 +1,52 @@
 # HRNet-Footprint-Trainer
 
-在**自己的**高分辨率正射影像上训练一个建筑物轮廓分割模型，输出可对大图做滑窗推理的权重。
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![MMSegmentation](https://img.shields.io/badge/MMSegmentation-1.2%2B-orange.svg)](https://github.com/open-mmlab/mmsegmentation)
+[![Stars](https://img.shields.io/github/stars/UVE1048/HRNet-Footprint-Trainer?style=social)](https://github.com/UVE1048/HRNet-Footprint-Trainer/stargazers)
+[![Last commit](https://img.shields.io/github/last-commit/UVE1048/HRNet-Footprint-Trainer)](https://github.com/UVE1048/HRNet-Footprint-Trainer/commits/main)
 
-> English: Training pipeline for building-footprint segmentation on high-resolution orthophotos. HRNet-W48 + FCNHead on MMSegmentation, with sliding-window dataset generation, a NoData-aware ignore-index transform, and sliding-window inference over arbitrarily large GeoTIFFs.
+**在你自己的正射影像上训练建筑物轮廓分割模型，输出能对大图做滑窗推理的权重。**
 
-三个脚本，一条链路：**大影像 + 矢量标签 → 切片数据集 → HRNet 训练 → 大图滑窗推理**。
-
-最适合的场景是：通用遥感模型在你的影像上（不同季节、不同传感器、不同城市肌理）边界不准，而你手上有本地测绘的建筑物矢量。那就别微调别人的权重了，直接训一个。
-
-## 目录
-
-- [和现成模型比，为什么要自己训](#和现成模型比为什么要自己训)
-- [链路概览](#链路概览)
-- [环境安装](#环境安装)
-- [完整流程](#完整流程)
-  - [1. 准备数据集](#1-准备数据集)
-  - [2. 切片](#2-切片)
-  - [3. 训练](#3-训练)
-  - [4. 推理](#4-推理)
-- [关键设计](#关键设计)
-- [预训练权重](#预训练权重)
-- [项目结构](#项目结构)
-- [已知限制](#已知限制)
-- [许可](#许可)
-
-## 和现成模型比，为什么要自己训
-
-现成的建筑物提取模型基本都在 Inria、SpaceNet 这类公开集上训的。它们在郊区独立房屋上表现很好，到高密度城区就开始出问题——楼挨得太近，粘连成一片；阴影方向不一样，边界系统性偏移；屋顶材质（彩钢瓦、绿化屋面）差异大，直接漏检。
-
-这套流程的所有设计取舍都指向一件事：**让模型吃你自己的地物分布**。所以切片阶段有前景占比过滤（剔除全空和全满的样本），有 NoData 掩码（黑边不参与 loss），有 50% 的重叠滑窗（消除拼缝）。
-
-## 链路概览
+Train HRNet building-footprint segmentation on your own orthophotos: sliding-window dataset generation, NoData-aware training, large-image sliding-window inference.
 
 ```text
-原始大影像 (.tif)  +  建筑物矢量 (.shp)
+原始大影像 (.tif) + 建筑物矢量 (.shp)
         │
-        ▼  prepare_dataset_multiprocess.py   （滑窗切片 + 前景占比过滤 + NoData 剔除）
+        ▼  prepare_dataset_multiprocess.py   滑窗切片 + 前景占比过滤 + NoData 剔除
    dataset/{train,val}/{images,masks}  +  *_list.txt
         │
-        ▼  train.py                          （HRNet-W48 + FCNHead，MMSegmentation）
+        ▼  train.py                          HRNet-W48 + FCNHead，MMSegmentation
    work_dirs/hrnet_w48_footprint/iter_*.pth
         │
-        ▼  predict.py                        （重叠滑窗推理 + 无缝拼接）
+        ▼  predict.py                        重叠滑窗推理 + 无缝拼接
    test/prediction_result.tif  +  _vis.tif
 ```
 
+---
+
+## 这是什么
+
+三个脚本，一条链路：**大影像 + 矢量标签 → 切片数据集 → HRNet 训练 → 大图滑窗推理**。
+
+适合这种情况：通用遥感模型在你的影像上边界不准 —— 季节不同、传感器不同、城市肌理不同 —— 而你手上有本地测绘的建筑物矢量。那就别微调别人的权重，直接训一个。
+
+**关键词**：建筑物轮廓提取 · 建筑物分割 · 语义分割训练 · 遥感影像分割 · 正射影像 · HRNet · HRNet-W48 · MMSegmentation · OpenMMLab · 滑窗切片 · 重叠推理 · 数据集生成 · NoData 处理 · 遥感深度学习
+**Keywords**: building footprint segmentation · building extraction · HRNet training · MMSegmentation · OpenMMLab · remote sensing segmentation · sliding window inference · tiling · large GeoTIFF inference · NoData masking · dataset preparation · PyTorch
+
+## 为什么值得自己训
+
+现成的建筑物提取模型基本都在 Inria、SpaceNet 这类公开集上训的。它们在郊区独立房屋上表现很好，到高密度城区就开始出问题：
+
+- 楼挨得太近，**粘连成一片**
+- 阴影方向不一样，**边界系统性偏移**
+- 屋顶材质差异大（彩钢瓦、绿化屋面），**直接漏检**
+
+这套流程的所有取舍都指向一件事：**让模型吃你自己的地物分布**。所以切片阶段有前景占比过滤（剔除全空/全满样本），有 NoData 掩码让黑边不参与 loss，有 50% 重叠滑窗消除拼缝。
+
 ## 环境安装
 
-**推荐用 conda**，主要为了 GDAL / GEOS 的二进制依赖：
+推荐用 conda，主要为了 GDAL / GEOS 的二进制依赖：
 
 ```bash
 conda create -n footprint python=3.10 -y
@@ -56,12 +55,12 @@ conda install -c conda-forge geopandas rasterio -y
 pip install -r requirements.txt
 ```
 
-PyTorch 建议按自己的 CUDA 版本从[官网](https://pytorch.org/get-started/locally/)装，`requirements.txt` 里的 `torch>=2.0` 只是兜底。
+PyTorch 建议按自己的 CUDA 版本从[官网](https://pytorch.org/get-started/locally/)安装，`requirements.txt` 里的 `torch>=2.0` 只是兜底。
 
-Windows 上不想手动配环境，可以跑 `prepare/setup_geo_env.ps1`（PowerShell，需要 conda 先在 PATH 里）。
+Windows 不想手动配环境可以跑 `prepare/setup_geo_env.ps1`（需要 conda 已在 PATH）。
 
-> **mmcv 编译不动？** 换成 `pip install mmcv-lite>=2.1.0`。`train.py` 里有一行 `mmcv.__version__ = '2.1.0'`
-> 的 hack，就是为了绕过 MMSegmentation 对 mmcv 版本的强校验，让 lite 版能跑起来。
+> **mmcv 编译不动？** 换 `pip install mmcv-lite>=2.1.0`。`train.py` 里那行 `mmcv.__version__ = '2.1.0'`
+> 的 hack 就是为了绕过 MMSegmentation 对 mmcv 版本的强校验，让 lite 版能跑起来。
 
 ## 完整流程
 
@@ -70,9 +69,7 @@ Windows 上不想手动配环境，可以跑 `prepare/setup_geo_env.ps1`（Power
 需要两类原始数据，**坐标系必须一致**：
 
 - 高分辨率正射影像：`.tif` / `.tiff`，建议 GSD ≤ 0.2 m
-- 建筑物轮廓矢量：`.shp`，一个图层一个要素即可，不用区分属性
-
-把路径填进 `prepare/DATA.TXT`：
+- 建筑物轮廓矢量：`.shp`，一个图层即可，不区分属性
 
 ```bash
 cp prepare/DATA.example.TXT prepare/DATA.TXT
@@ -86,15 +83,13 @@ cp prepare/DATA.example.TXT prepare/DATA.TXT
     ]
 ```
 
-也可以 `python prepare/prepare_dataset_multiprocess.py --config /path/to/my_list.txt` 指定别的配置文件。
+也可以用 `python prepare/prepare_dataset_multiprocess.py --config /path/to/my_list.txt` 指定别的配置。
 
 ### 2. 切片
 
 ```bash
 python prepare/prepare_dataset_multiprocess.py
 ```
-
-默认参数（在脚本顶部，可直接改）：
 
 | 参数 | 默认值 | 含义 |
 | :--- | :--- | :--- |
@@ -115,7 +110,7 @@ dataset/
 └── val_list.txt
 ```
 
-**增量式**：重跑时已存在的切片会被跳过，新增数据源只需往 `DATA.TXT` 里追加一行。所以补数据不用重头再来。
+**增量式**：重跑时已存在的切片会被跳过，新增数据源只需往 `DATA.TXT` 追加一行。补数据不用重头再来。
 
 ### 3. 训练
 
@@ -123,14 +118,14 @@ dataset/
 python train.py
 ```
 
-`train.py` 里用 Python dict 直接定义了完整配置（模型、数据集、数据增强、优化器、学习率策略），没有额外的 config 文件要维护。想调参就改脚本里的数字。
+`train.py` 用 Python dict 直接定义完整配置（模型、数据集、数据增强、优化器、学习率策略），没有额外的 config 文件要维护。
 
-默认配置要点：
+默认配置：
 
 - 骨干 `HRNet`（`hrnet_w48`），解码器 `FCNHead`，`num_classes=2`（背景 / 建筑）
 - 损失 = `CrossEntropyLoss` + `DiceLoss`，各权重 1.0
-- 优化器 `SGD`，学习率 `PolyLR` 衰减
-- 输入归一化用 ImageNet 均值方差，`bgr_to_rgb=True`
+- 优化器 `SGD` + `PolyLR` 衰减
+- 归一化用 ImageNet 均值方差，`bgr_to_rgb=True`
 
 日志与权重落在 `work_dirs/hrnet_w48_footprint/`。
 
@@ -146,46 +141,50 @@ python predict.py \
 
 | 参数 | 默认值 | 说明 |
 | :--- | :--- | :--- |
-| `--input` | `test/sample.tif` | 待预测的大影像 |
+| `--input` | `test/sample.tif` | 待预测大影像 |
 | `--checkpoint` | `work_dirs/hrnet_w48_footprint/iter_40000.pth` | 权重 |
 | `--output` | `test/prediction_result.tif` | 输出掩膜 |
 | `--crop-size` | 1024 | 滑窗边长，与训练一致 |
 | `--stride` | 512 | 滑窗步长 |
 | `--device` | `cuda:0` | 无 GPU 用 `cpu` |
 
-产出两个文件：
-
-- `prediction_result.tif` — 二值掩膜，0 背景 / 1 建筑，保留原影像的地理参考
-- `prediction_result_vis.tif` — 白建筑黑背景的可视化版，直接拖进 QGIS 就能看
+产出两个文件：`prediction_result.tif`（二值掩码，保留地理参考）和 `prediction_result_vis.tif`（白建筑黑背景，可直接拖进 QGIS）。
 
 ## 关键设计
 
-**`MaskNoData` 变换（`train.py`）** — 加载每张切片时，把纯黑 `(0,0,0)` 和纯白 `(255,255,255)` 区域在标签里的对应像素置为 `255`。`255` 是 MMSegmentation 的 `ignore_index`，算 loss 时这些位置被完全跳过。这样模型不会因为"把影像黑边预测成背景"而被惩罚，注意力都集中在有效区域。这是这套流程里最见效的一个改动。
+**`MaskNoData` 变换** —— 加载切片时把纯黑 `(0,0,0)` 与纯白 `(255,255,255)` 区域在标签中置为 `255`。`255` 是 MMSegmentation 的 `ignore_index`，算 loss 时完全跳过。这样模型不会因为"把影像黑边预测成背景"被惩罚。这是全套流程里最见效的一个改动。
 
-**切片级的双重过滤** — 前景占比 `[0.01, 0.98]` 之外的全丢。全空样本让模型学会"这里没有建筑"但没信息量；全满样本同理。丢掉它们能显著降低训练时间而不掉精度。
+**切片级双重过滤** —— 前景占比 `[0.01, 0.98]` 之外全丢。全空样本让模型学会"这里没建筑"但没信息量，全满样本同理。丢掉它们显著降低训练时间而不掉精度。
 
-**重叠滑窗推理** — `predict.py` 用重叠窗口预测再拼接，既绕开大图无法整张进显存的问题，也用重叠区的加权消除了拼缝处的断层。
+**重叠滑窗推理** —— 用重叠窗口预测再拼接，既绕开大图无法整张进显存的问题，也用重叠区加权消除拼缝断层。
 
-**增量式数据集构建** — `prepare_dataset_multiprocess.py` 会扫描已有切片并跳过，多进程并行处理新增部分。补数据是常态，这一步省的时间最多。
+**增量式数据集构建** —— 扫描已有切片并跳过，多进程处理新增部分。补数据是常态，这一步省的时间最多。
 
 ## 预训练权重
 
-如果不想自己训，可以直接拿训好的 HRNet-W48 权重：
+不想自己训可以直接拿训好的 HRNet-W48 权重：
 
 ```bash
 python scripts/download_models.py         # 约 542 MB，带 SHA256 校验
 python scripts/download_models.py --check # 只校验本地文件
 ```
 
-权重会落到 `work_dirs/hrnet_w48_footprint/iter_40000.pth`。
-
-这份权重同时用于 [Footprint-Creater](https://github.com/UVE1048/Footprint-Creater)（带 Web 界面的提取工具），所以只托管在那一侧的 Release 里，避免同一个 542 MB 文件存两份。
+权重落到 `work_dirs/hrnet_w48_footprint/iter_40000.pth`。同一份权重也用于 [Footprint-Creater](https://github.com/UVE1048/Footprint-Creater)（带 Web 界面的提取工具），所以只托管在那一侧的 Release，避免同一个 542 MB 文件存两份。
 
 ```text
 SHA256  73db3f97998fc62cbbcb83897925d1c6ffaef2e1dadd78b5b7f90267dab5cf18
 ```
 
-`Footprint-Creater` 里还有个更轻的 HRNet-W32 权重（约 231 MB），如果你的显存吃紧，可以在 `train.py` 里把 `hrnet_w48` 换成 `hrnet_w32` 自己训一个。
+## 与替代方案对比
+
+| 方案 | 用自己数据训练 | 大图推理 | 标签格式 | 上手成本 |
+| :--- | :--- | :--- | :--- | :--- |
+| **HRNet-Footprint-Trainer** | ✅ 滑窗切片全自动 | ✅ 重叠滑窗拼接 | 栅格 + SHP 矢量 | 填个 TXT 就能跑 |
+| MMSegmentation 官方示例 | 需自己写 dataset 类 | ❌ 只给切片推理 | 依赖 ISPRS 格式 | 中等 |
+| U-Net 类教程仓库 | ✅ | 通常缺大图方案 | 多样 | 需自己拼 |
+| 直接用现成模型推理 | ❌ | 部分支持 | — | 低但精度受限 |
+
+第一列是主要差异：多数教程给你一个切片级的训练脚本，本文这个仓库把"从 SHP 标签到可训练数据集"和"从权重到大图掩膜"这两段补齐了。
 
 ## 项目结构
 
@@ -198,21 +197,45 @@ SHA256  73db3f97998fc62cbbcb83897925d1c6ffaef2e1dadd78b5b7f90267dab5cf18
 │   ├── check.py                          # 切片标注校验（YOLO 格式，可选）
 │   ├── setup_geo_env.ps1                 # Windows conda 环境脚本
 │   └── DATA.example.TXT                  # 数据集清单模板
-├── scripts/
-│   └── download_models.py                # 拉取预训练权重
-├── requirements.txt
-└── .gitignore                            # 排除 dataset/ work_dirs/ test/ *.pth
+├── scripts/download_models.py
+└── requirements.txt
 ```
 
-运行后自动生成：`dataset/`（切片）、`work_dirs/`（日志与权重）、`test/`（推理结果）。
+运行后自动生成 `dataset/`、`work_dirs/`、`test/`（均已在 `.gitignore` 中排除）。
 
 ## 已知限制
 
-- **标签质量决定上限**。矢量和影像套合不准（常见于坐标系或时相不一致）时，模型学到的是系统性的边界偏移，加数据也没用。训之前先抽几处叠加检查。
-- **类别只有建筑/背景两类**。要区分屋面类型、层数得改 `METAINFO` 的 `classes` 并重做标签。
-- **`prepare/check.py` 是 YOLO 标注格式的校验脚本**，和主链路（语义分割）不是同一条线，按需使用。
-- **显存与切片尺寸强相关**。1024 切片 + W48 大约要 8 GB；在 8 GB 卡上想再大就换 W32 或降 `CROP_SIZE`。
+- **标签质量决定上限**。矢量和影像套合不准（坐标系或时相不一致）时，模型学到的是系统性边界偏移，加数据也没用。训之前先抽几处叠加检查。
+- **只有建筑/背景两类**。要区分屋面类型、层数得改 `METAINFO` 的 `classes` 并重做标签。
+- **`prepare/check.py` 是 YOLO 标注格式的校验脚本**，与主链路（语义分割）不是同一条线，按需使用。
+- **显存与切片尺寸强相关**。1024 切片 + W48 约需 8 GB；8 GB 卡上想再大就换 W32 或降 `CROP_SIZE`。
+
+## 引用
+
+```bibtex
+@software{hrnetfootprinttrainer2026,
+  title  = {HRNet-Footprint-Trainer: Building footprint segmentation training pipeline},
+  author = {UVE},
+  year   = {2026},
+  url    = {https://github.com/UVE1048/HRNet-Footprint-Trainer}
+}
+```
+
+若在论文中使用，也建议一并引用骨干网络原文：
+
+```bibtex
+@inproceedings{wang2020hrnet,
+  title     = {Deep High-Resolution Representation Learning for Visual Recognition},
+  author    = {Wang, Jingdong and Sun, Ke and Cheng, Tianheng and others},
+  booktitle = {IEEE TPAMI},
+  year      = {2020}
+}
+```
 
 ## 许可
 
-[MIT](LICENSE)
+代码以 [MIT](LICENSE) 协议开源。
+
+基于 [MMSegmentation](https://github.com/open-mmlab/mmsegmentation)（Apache-2.0）构建，使用时请遵循其原始协议。其余依赖：PyTorch(BSD-3)、rasterio(BSD-3)、GeoPandas(BSD-3)、OpenCV(Apache-2.0)、tqdm(MIT)。
+
+**训练数据不随本仓库分发**。使用者需自行确保影像与矢量的获取、使用符合当地测绘与数据合规要求。

@@ -1,0 +1,62 @@
+# HRNet-Footprint-Trainer
+
+> Train HRNet building-footprint segmentation on your own orthophotos. Sliding-window dataset generation from large GeoTIFFs plus building vectors, MMSegmentation training, and overlapping sliding-window inference over arbitrarily large images.
+
+Three scripts form one pipeline: large orthophoto plus building vector labels,
+turned into a tiled dataset, used to train an HRNet segmentation model, which is
+then applied to full-size imagery with seamless stitching.
+
+This is for the case where a general-purpose remote-sensing model is inaccurate
+on your imagery (different season, sensor, or urban texture) but you have local
+building vector data. Rather than fine-tuning someone else's checkpoint, train a
+dedicated one.
+
+## Entry points
+
+- `prepare/prepare_dataset_multiprocess.py` - sliding-window tiling with
+  foreground-ratio filtering and NoData handling. Reads `prepare/DATA.TXT`
+  (copy from `DATA.example.TXT`) or `--config <path>`. Fully incremental: existing
+  patches are skipped. Outputs `dataset/{train,val}/{images,masks,masks_vis}`
+  plus `train_list.txt` / `val_list.txt`.
+- `train.py` - full MMSegmentation config in a Python dict: HRNet-W48 backbone,
+  FCNHead, CrossEntropy + Dice loss, SGD with PolyLR. Defines the
+  `FootprintDataset` and the `MaskNoData` transform.
+- `predict.py` - overlapping sliding-window inference. Flags: `--input`,
+  `--checkpoint`, `--output`, `--crop-size`, `--stride`, `--device`.
+  Writes a binary mask and a `_vis` visualisation, both georeferenced.
+- `scripts/download_models.py` - downloads the reference HRNet-W48 checkpoint
+  with SHA256 verification.
+
+## Key design points
+
+The `MaskNoData` transform sets pure black `(0,0,0)` and pure white
+`(255,255,255)` regions of each patch to `255` in the label, which is
+MMSegmentation's `ignore_index`. Image borders therefore never contribute to the
+loss. Patches whose building pixel ratio falls outside `[0.01, 0.98]` are
+discarded, cutting training time without costing accuracy. Inference uses 50%
+overlapping windows, which both works around GPU memory limits and removes seam
+artifacts.
+
+## Reference checkpoint
+
+HRNet-W48 + FCNHead, about 542 MB, served from the sibling project's release:
+`https://github.com/UVE1048/Footprint-Creater/releases/download/models-v1/hrnet_w48_iter_6000.pth`
+SHA256 `73db3f97998fc62cbbcb83897925d1c6ffaef2e1dadd78b5b7f90267dab5cf18`.
+
+## Docs
+
+- [README](https://github.com/UVE1048/HRNet-Footprint-Trainer/blob/main/README.md): full walkthrough, parameters, comparison with alternatives, known limitations.
+- [Dataset template](https://github.com/UVE1048/HRNet-Footprint-Trainer/blob/main/prepare/DATA.example.TXT): format of the dataset list file.
+
+## Keywords
+
+building footprint, building extraction, building segmentation, semantic
+segmentation, HRNet, HRNet-W48, MMSegmentation, OpenMMLab, remote sensing,
+orthophoto, sliding window inference, tiling, large GeoTIFF, NoData masking,
+dataset preparation, PyTorch, 建筑物轮廓提取, 语义分割, 遥感影像, 模型训练
+
+## License
+
+MIT for the code. Training data is not distributed with this repository. Built on
+MMSegmentation (Apache-2.0); other dependencies: PyTorch BSD-3, rasterio BSD-3,
+GeoPandas BSD-3, OpenCV Apache-2.0, tqdm MIT.
