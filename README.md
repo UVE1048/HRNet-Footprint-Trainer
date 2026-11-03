@@ -25,6 +25,11 @@ Train HRNet building-footprint segmentation on your own orthophotos: sliding-win
 
 ---
 
+**也叫**：建筑物分割训练 · HRNet 训练脚本 · 遥感分割训练模板 · 建筑物提取模型训练 · building segmentation training · HRNet segmentation pipeline
+
+**什么时候该用**：现成模型的精度在你的影像上不够，而你手上有本地测绘的建筑物矢量可以当标签。
+**什么时候不该用**：完全没有标注数据（先用现成权重，见 Footprint-Creater）；只需推理不训练。
+
 ## 这是什么
 
 三个脚本，一条链路：**大影像 + 矢量标签 → 切片数据集 → HRNet 训练 → 大图滑窗推理**。

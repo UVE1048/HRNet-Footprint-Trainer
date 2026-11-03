@@ -1,0 +1,37 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "HRNet-Footprint-Trainer",
+  "description": "Training pipeline for building footprint segmentation on high-resolution orthophotos. Generates sliding-window patches from large GeoTIFFs and building vectors, trains HRNet-W48 with FCNHead on MMSegmentation, and performs overlapping sliding-window inference over arbitrarily large images.",
+  "codeRepository": "https://github.com/UVE1048/HRNet-Footprint-Trainer",
+  "url": "https://uve1048.github.io/hrnet-footprint-trainer/",
+  "programmingLanguage": [
+    "Python"
+  ],
+  "license": "https://opensource.org/licenses/MIT",
+  "author": {
+    "@type": "Person",
+    "name": "UVE",
+    "url": "https://github.com/UVE1048"
+  },
+  "datePublished": "2026-11-03",
+  "version": "1.0.0",
+  "keywords": [
+    "building segmentation",
+    "HRNet",
+    "MMSegmentation",
+    "OpenMMLab",
+    "remote sensing",
+    "semantic segmentation",
+    "sliding window inference",
+    "dataset preparation",
+    "PyTorch",
+    "语义分割",
+    "遥感",
+    "模型训练"
+  ],
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Windows, Linux, macOS",
+  "isAccessibleForFree": true,
+  "citation": "https://github.com/UVE1048/HRNet-Footprint-Trainer/blob/main/CITATION.cff"
+}
