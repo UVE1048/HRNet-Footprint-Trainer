@@ -175,7 +175,15 @@ python scripts/download_models.py         # 约 542 MB，带 SHA256 校验
 python scripts/download_models.py --check # 只校验本地文件
 ```
 
-权重落到 `work_dirs/hrnet_w48_footprint/iter_40000.pth`。同一份权重也用于 [Footprint-Creater](https://github.com/UVE1048/Footprint-Creater)（带 Web 界面的提取工具），所以只托管在那一侧的 Release，避免同一个 542 MB 文件存两份。
+权重落到 `work_dirs/hrnet_w48_footprint/iter_40000.pth`。
+
+也可以直接从 Hugging Face 取（含完整模型卡）：<https://huggingface.co/Uve1048/hrnet-w48-footprint>
+
+```python
+from huggingface_hub import hf_hub_download
+path = hf_hub_download("Uve1048/hrnet-w48-footprint", "hrnet_w48_iter_6000.pth")
+```
+同一份权重也用于 [Footprint-Creater](https://github.com/UVE1048/Footprint-Creater)（带 Web 界面的提取工具），所以只托管在那一侧的 Release，避免同一个 542 MB 文件存两份。
 
 ```text
 SHA256  73db3f97998fc62cbbcb83897925d1c6ffaef2e1dadd78b5b7f90267dab5cf18
