@@ -5,6 +5,7 @@
 [![MMSegmentation](https://img.shields.io/badge/MMSegmentation-1.2%2B-orange.svg)](https://github.com/open-mmlab/mmsegmentation)
 [![Stars](https://img.shields.io/github/stars/UVE1048/HRNet-Footprint-Trainer?style=social)](https://github.com/UVE1048/HRNet-Footprint-Trainer/stargazers)
 [![Last commit](https://img.shields.io/github/last-commit/UVE1048/HRNet-Footprint-Trainer)](https://github.com/UVE1048/HRNet-Footprint-Trainer/commits/main)
+[![CI](https://github.com/UVE1048/HRNet-Footprint-Trainer/actions/workflows/ci.yml/badge.svg)](https://github.com/UVE1048/HRNet-Footprint-Trainer/actions/workflows/ci.yml)
 
 **在你自己的正射影像上训练建筑物轮廓分割模型，输出能对大图做滑窗推理的权重。**
 
