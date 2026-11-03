@@ -1,0 +1,8 @@
+    datasets = [
+        # (TIF_PATH, SHP_PATH)
+        # 每行一组：高分辨率正射影像 + 对应的建筑物轮廓矢量
+        # 影像与矢量必须使用同一坐标系
+        (r"/data/area_a/AreaA.tif", r"/data/area_a/buildings.shp"),
+        (r"/data/area_b/AreaB.tif", r"/data/area_b/buildings.shp"),
+        (r"/data/area_c/AreaC.tiff", r"/data/area_c/buildings.shp")
+    ]

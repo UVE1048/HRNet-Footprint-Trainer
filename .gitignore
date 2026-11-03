@@ -1,0 +1,24 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+.venv/
+venv/
+env/
+
+.idea/
+.vscode/
+
+# 训练产物与数据集（体积大，自制）
+work_dirs/
+dataset/
+test/
+
+# 权重
+*.pth
+*.pt
+
+# 日志
+*.log
+tensorboard/
