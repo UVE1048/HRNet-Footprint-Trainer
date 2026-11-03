@@ -232,6 +232,17 @@ SHA256  73db3f97998fc62cbbcb83897925d1c6ffaef2e1dadd78b5b7f90267dab5cf18
 }
 ```
 
+## 相关项目
+
+同一套实景三维链路上的其他工具：
+
+- [ObjOrthoRender](https://github.com/UVE1048/ObjOrthoRender)：OBJ 模型转带地理参考的 GeoTIFF 正射影像
+- [Footprint-Creater](https://github.com/UVE1048/Footprint-Creater)：正射影像建筑物轮廓提取，输出 Shapefile
+- [HRNet-Footprint-Trainer](https://github.com/UVE1048/HRNet-Footprint-Trainer)：建筑物分割模型训练：切片、训练、大图推理 ←
+- [VideoFusion-Web](https://github.com/UVE1048/VideoFusion-Web)：无人机视频融合投射到三维实景模型
+
+在线文档：<https://uve1048.github.io/hrnet-footprint-trainer/>
+
 ## 许可
 
 代码以 [MIT](LICENSE) 协议开源。
